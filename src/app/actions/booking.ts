@@ -1,0 +1,121 @@
+"use server";
+
+import { db } from "@/db";
+import { bookings, services, staff, blocks } from "@/db/schema";
+import { eq, and, gte, lte, or, isNull } from "drizzle-orm";
+import { addMinutes, format, parseISO, startOfDay, endOfDay, isBefore, isAfter, max, min } from "date-fns";
+
+/**
+ * Calcula los slots de tiempo disponibles para un servicio, fecha y sucursal/staff específicos.
+ */
+export async function getAvailableSlots(dateStr: string, serviceId: string, branchId: string, staffId?: string) {
+  try {
+    // 1. Obtener duración del servicio
+    const service = await db.query.services.findFirst({
+      where: eq(services.id, serviceId)
+    });
+    if (!service) return [];
+
+    const duration = service.durationMinutes;
+
+    // 2. Definir horario base (MOCK: 08:00 AM - 08:00 PM)
+    // TODO: En el futuro leer de branches.businessHours
+    const dayStart = parseISO(`${dateStr}T08:00:00Z`);
+    const dayEnd = parseISO(`${dateStr}T20:00:00Z`);
+
+    // 3. Obtener rangos ocupados (bookings y bloqueos)
+    const dayStartRange = startOfDay(parseISO(dateStr));
+    const dayEndRange = endOfDay(parseISO(dateStr));
+
+    // Consultar citas existentes
+    const existingBookings = await db.select().from(bookings).where(
+      and(
+        eq(bookings.branchId, branchId),
+        staffId ? eq(bookings.staffId, staffId) : undefined,
+        gte(bookings.startTime, dayStartRange),
+        lte(bookings.startTime, dayEndRange),
+        eq(bookings.status, 'CONFIRMED')
+      )
+    );
+
+    // Consultar bloqueos (vacaciones, descansos, etc)
+    const existingBlocks = await db.select().from(blocks).where(
+      and(
+        eq(blocks.branchId, branchId),
+        staffId ? or(isNull(blocks.staffId), eq(blocks.staffId, staffId)) : isNull(blocks.staffId),
+        gte(blocks.startTime, dayStartRange),
+        lte(blocks.startTime, dayEndRange)
+      )
+    );
+
+    const occupiedRanges = [
+      ...existingBookings.map(b => ({ start: b.startTime, end: b.endTime })),
+      ...existingBlocks.map(b => ({ start: b.startTime, end: b.endTime }))
+    ];
+
+    // 4. Generar slots cada 30 minutos
+    const slots = [];
+    let currentSlot = dayStart;
+
+    while (isBefore(currentSlot, dayEnd)) {
+      const slotEnd = addMinutes(currentSlot, duration);
+
+      // No permitir slots que terminen después del cierre
+      if (isAfter(slotEnd, dayEnd)) break;
+
+      // Validar solapamiento: max(start1, start2) < min(end1, end2)
+      const isOverlap = occupiedRanges.some(range => {
+        const overlapStart = max([currentSlot, range.start]);
+        const overlapEnd = min([slotEnd, range.end]);
+        return overlapStart < overlapEnd;
+      });
+
+      if (!isOverlap) {
+        slots.push({
+          time: format(currentSlot, "hh:mm a"),
+          available: true
+        });
+      }
+
+      currentSlot = addMinutes(currentSlot, 30);
+    }
+
+    return slots;
+  } catch (error) {
+    console.error("Error fetching available slots:", error);
+    return [];
+  }
+}
+
+/**
+ * Crea una nueva reserva en la base de datos.
+ */
+export async function createBookingAction(data: {
+  tenantId: string;
+  branchId: string;
+  serviceId: string;
+  staffId: string;
+  customerName: string;
+  customerEmail: string;
+  startTime: Date;
+  endTime: Date;
+}) {
+  try {
+    const [newBooking] = await db.insert(bookings).values({
+      tenantId: data.tenantId,
+      branchId: data.branchId,
+      serviceId: data.serviceId,
+      staffId: data.staffId,
+      customerName: data.customerName,
+      customerEmail: data.customerEmail,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      status: 'CONFIRMED'
+    }).returning();
+
+    return { success: true, booking: newBooking };
+  } catch (error) {
+    console.error("Error creating booking:", error);
+    return { success: false, error: "Failed to create booking" };
+  }
+}

@@ -1,10 +1,19 @@
 import { db } from './index';
-import { tenants, branches, staff, services, products } from './schema';
+import { tenants, branches, staff, services, products, bookings } from './schema';
 
 async function main() {
   console.log('🌱 Inicializando Seed de Datos Falsos en la BD...');
   
   try {
+    // 0. Limpiar BD previa
+    console.log('🧹 Limpiando base de datos anterior...');
+    await db.delete(bookings);
+    await db.delete(products);
+    await db.delete(services);
+    await db.delete(staff);
+    await db.delete(branches);
+    await db.delete(tenants);
+
     // 1. Crear un Tenant Base (SaaS Client)
     const [tenant] = await db.insert(tenants).values({
       name: 'ZyncSalón Spa',
@@ -32,9 +41,65 @@ async function main() {
 
     // 4. Crear Servicios Ofrecidos por el Tenant
     const newServices = await db.insert(services).values([
-      { tenantId: tenant.id, name: 'Corte y Lavado Spa', durationMinutes: 45, price: '20.00', includes: ["Lavado de cabello profundo", "Corte con diseño", "Aplicación de cera premium"], excludes: ["Masaje capilar"] },
-      { tenantId: tenant.id, name: 'Matizado y Decoloración', durationMinutes: 120, price: '75.00', includes: ["Consulta de tono", "Decoloración profesional", "Matizado Ice/Warm", "Secado incluido"], excludes: ["Corte de cabello extremo", "Tratamientos previos de queratina requeridos"] },
-      { tenantId: tenant.id, name: 'Manicura Acrílica', durationMinutes: 60, price: '25.00', includes: ["Remoción de cutícula", "Acrílico largo medio", "Esmaltado gel", "Masaje de manos"], excludes: ["Retiro de acrílico previo", "Diseños 3D o joyería (costo extra)"] },
+      { 
+        tenantId: tenant.id, 
+        name: 'Corte y Lavado Spa Premium', 
+        durationMinutes: 45, 
+        price: '20.00', 
+        includes: [
+          "Lavado de cabello profundo con shampoo orgánico", 
+          "Masaje estimulante del cuero cabelludo (10 min)", 
+          "Corte de cabello personalizado según visagismo", 
+          "Secado y peinado con secadora y cepillo", 
+          "Aplicación de cera premium o pomada para el acabado",
+          "Bebida de cortesía (café, té o agua)"
+        ], 
+        excludes: [
+          "Tratamientos anticaída o para la caspa",
+          "Afeitado de barba profunda con navaja libre",
+          "Coloración o matizado del cabello"
+        ] 
+      },
+      { 
+        tenantId: tenant.id, 
+        name: 'Matizado y Decoloración Olaplex', 
+        durationMinutes: 120, 
+        price: '75.00', 
+        includes: [
+          "Consulta inicial detallada de tono y estado del cabello", 
+          "Aplicación de producto protector de hebra",
+          "Decoloración global profesional (hasta nivel 9)", 
+          "Matizado frío/Ice o cálido/Warm a elección", 
+          "Ampolla hidratante post-coloración",
+          "Secado e hidratación profunda incluida"
+        ], 
+        excludes: [
+          "Corte de puntas o rediseño de corte", 
+          "No apto si hay tratamientos previos de queratina fresca o alisados brasileños",
+          "Extensiones de cabello",
+          "Retoque a las 3 semanas (costo aparte)"
+        ] 
+      },
+      { 
+        tenantId: tenant.id, 
+        name: 'Manicura Acrílica Luxury', 
+        durationMinutes: 60, 
+        price: '25.00', 
+        includes: [
+          "Limpieza profunda y remoción de cutícula con torno", 
+          "Aplicación de tips y acrílico (largo corto a medio)", 
+          "Limado asimétrico y sellado perfecto",
+          "Esmaltado en gel color liso (1 o 2 tonos base)", 
+          "Masaje relajante de manos con crema de almendras",
+          "Aceite de cutícula finalizador al aroma de mango"
+        ], 
+        excludes: [
+          "Retiro de acrílico o sistema de otro salón (se cobra $5 extra)", 
+          "Diseños 3D, encapsulados o pedrería Swarovski",
+          "Extensión extra larga de los tips",
+          "Efectos especiales tipo espejo, aurora o velvet"
+        ] 
+      },
     ]).returning();
 
     console.log(`✅ ${newServices.length} servicios registrados`);
@@ -46,6 +111,47 @@ async function main() {
     ]);
 
     console.log('✅ Productos registrados');
+
+    // 6. Crear un par de reservas de prueba para hoy
+    const testDate = new Date();
+    testDate.setMinutes(0, 0, 0); // Limpiar a la hora exacta
+    
+    // Reserva 1: Hoy a las 11:00 AM (Ana Gomez)
+    const start1 = new Date(testDate);
+    start1.setHours(11);
+    const end1 = new Date(start1);
+    end1.setMinutes(45);
+
+    // Reserva 2: Hoy a las 02:00 PM (Carlos Ruiz)
+    const start2 = new Date(testDate);
+    start2.setHours(14);
+    const end2 = new Date(start2);
+    end2.setMinutes(60);
+
+    await db.insert(bookings).values([
+      {
+        tenantId: tenant.id,
+        branchId: branchMain.id,
+        staffId: newStaff[0].id, // Ana
+        serviceId: newServices[0].id,
+        customerName: 'Cliente Prueba Bloqueo',
+        startTime: start1,
+        endTime: end1,
+        status: 'CONFIRMED'
+      },
+      {
+        tenantId: tenant.id,
+        branchId: branchMain.id,
+        staffId: newStaff[1].id, // Carlos
+        serviceId: newServices[2].id,
+        customerName: 'Cliente Ocupado Tarde',
+        startTime: start2,
+        endTime: end2,
+        status: 'CONFIRMED'
+      }
+    ]);
+
+    console.log('✅ Reservas de prueba creadas');
 
     console.log('🚀 ¡Seed completado con éxito! Tienes información lista para el UI.');
   } catch (error) {

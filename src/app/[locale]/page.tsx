@@ -1,7 +1,7 @@
-import { db } from '../db';
-import { tenants, branches, services, staff } from '../db/schema';
+import { db } from '../../db';
+import { tenants, branches, services, staff } from '../../db/schema';
 import { eq } from 'drizzle-orm';
-import BookingWidget from '../components/BookingWidget';
+import BookingWidget from '../../components/BookingWidget';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +23,7 @@ export default async function Home() {
           services={tenantServices} 
           staff={tenantStaff}
           tenantName={tenant.name || "ZyncSlot Premium Studio"} 
+          tenantId={tenant.id}
         />
       ) : (
         <div className="min-h-screen bg-black text-white flex items-center justify-center">

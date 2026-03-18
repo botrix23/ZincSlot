@@ -15,7 +15,8 @@ import { relations } from 'drizzle-orm';
 export const tenants = pgTable('tenants', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
-  timezone: varchar('timezone', { length: 100 }).notNull().default('UTC'), // Configuración de Zona Horaria local
+  logoUrl: text('logo_url'), // Nueva columna para personalización de marca
+  timezone: varchar('timezone', { length: 100 }).notNull().default('UTC'), 
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
@@ -98,5 +99,16 @@ export const coverageZones = pgTable('coverage_zones', {
   name: varchar('name', { length: 255 }).notNull(),
   zipCode: varchar('zip_code', { length: 20 }),
   radiusKm: decimal('radius_km', { precision: 5, scale: 2 }),
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+});
+
+// 9. Users (Usuarios con Roles: ADMIN, SUPER_ADMIN)
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'cascade' }), // Null si es Super Admin
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  password: text('password').notNull(), 
+  role: varchar('role', { length: 50 }).notNull().default('ADMIN'), // 'ADMIN' | 'SUPER_ADMIN'
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
