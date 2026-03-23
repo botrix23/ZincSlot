@@ -4,9 +4,23 @@ import bcrypt from 'bcryptjs';
 
 async function main() {
   console.log('🌱 Inicializando Seed de Datos Falsos en la BD...');
+
+  // Leer credenciales desde variables de entorno (definidas en .env.local)
+  const adminName     = process.env.SEED_ADMIN_NAME     || 'Admin Demo';
+  const adminEmail    = process.env.SEED_ADMIN_EMAIL    || 'admin@demo.com';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'admin123';
+  const superName     = process.env.SEED_SUPER_NAME     || 'Super Admin Demo';
+  const superEmail    = process.env.SEED_SUPER_EMAIL    || 'super@demo.com';
+  const superPassword = process.env.SEED_SUPER_PASSWORD || 'admin123';
+
+  if (!process.env.SEED_ADMIN_EMAIL) {
+    console.warn('⚠️  SEED_ADMIN_EMAIL no definido en .env.local — usando valores demo');
+  }
   
   try {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const adminHashed = await bcrypt.hash(adminPassword, 10);
+    const superHashed = await bcrypt.hash(superPassword, 10);
+
     // 0. Limpiar BD previa
     console.log('🧹 Limpiando base de datos anterior...');
     await db.delete(bookings);
@@ -20,8 +34,10 @@ async function main() {
     // 1. Crear un Tenant Base (SaaS Client)
     const [tenant] = await db.insert(tenants).values({
       name: 'ZyncSalón Spa',
+      slug: 'zyncsalon-spa',
+      whatsappNumber: '50370000000',  // Número WA de demo (editable en Settings)
       timezone: 'America/El_Salvador',
-      status: 'ACTIVE', // Seeded tenant is active
+      status: 'ACTIVE',
     }).returning();
     
     console.log('✅ Tenant creado:', tenant.name);
@@ -29,21 +45,22 @@ async function main() {
     // 1.5 Crear Usuario Admin para el Tenant
     await db.insert(users).values({
       tenantId: tenant.id,
-      name: 'Admin Zync',
-      email: 'admin@zyncslot.com',
-      password: hashedPassword,
+      name: adminName,
+      email: adminEmail,
+      password: adminHashed,
       role: 'ADMIN',
     });
 
     // 1.6 Crear Super Admin (Sin Tenant)
     await db.insert(users).values({
-      name: 'Super Zync',
-      email: 'super@zyncslot.com',
-      password: hashedPassword,
+      name: superName,
+      email: superEmail,
+      password: superHashed,
       role: 'SUPER_ADMIN',
     });
 
     console.log('✅ Usuarios administrativos creados');
+
 
     // 2. Crear una Sucursal Principal para este Tenant
     const [branchMain] = await db.insert(branches).values({

@@ -19,13 +19,15 @@ export default function SettingsPage({
     id: string; 
     name: string; 
     logoUrl?: string | null;
+    whatsappNumber?: string | null;
     homeServiceTerms: string | null; 
     homeServiceTermsEnabled: boolean; 
   } 
 }) {
   const [name, setName] = useState(tenant.name);
-  const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || "");
-  const [homeServiceTerms, setHomeServiceTerms] = useState(tenant.homeServiceTerms || "");
+  const [logoUrl, setLogoUrl] = useState(tenant.logoUrl || '');
+  const [whatsappNumber, setWhatsappNumber] = useState(tenant.whatsappNumber || '');
+  const [homeServiceTerms, setHomeServiceTerms] = useState(tenant.homeServiceTerms || '');
   const [homeServiceTermsEnabled, setHomeServiceTermsEnabled] = useState(tenant.homeServiceTermsEnabled);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -39,6 +41,7 @@ export default function SettingsPage({
       tenantId: tenant.id,
       name,
       logoUrl,
+      whatsappNumber,
       homeServiceTerms,
       homeServiceTermsEnabled
     });
@@ -109,6 +112,19 @@ export default function SettingsPage({
               <Truck className="w-5 h-5 text-purple-500" />
             </div>
             <h2 className="text-xl font-bold">Servicio a Domicilio</h2>
+          </div>
+
+          {/* Campo Número WA */}
+          <div className="space-y-2">
+            <label className="block text-sm font-bold text-slate-700 dark:text-zinc-300">Número de WhatsApp del negocio</label>
+            <input 
+              type="text" 
+              value={whatsappNumber}
+              onChange={(e) => setWhatsappNumber(e.target.value.replace(/\D/g, ''))}
+              placeholder="Ej: 50378901234 (código de país + número, sin + ni espacios)"
+              className="w-full p-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all text-sm"
+            />
+            <p className="text-xs text-zinc-500">Este número recibirá los mensajes de confirmación de citas a domicilio.</p>
           </div>
 
           <div className="space-y-4">

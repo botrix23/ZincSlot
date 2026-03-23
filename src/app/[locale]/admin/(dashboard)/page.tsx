@@ -20,13 +20,26 @@ import { startOfDay, endOfDay, format } from 'date-fns';
 export default async function AdminDashboard() {
   const session = await getSession();
   
-  if (!session || !session.tenantId) {
+  // Determinar el tenantId activo:
+  // - Para ADMIN: su propio tenantId
+  // - Para SUPER_ADMIN: el tenant impersonado (si está en modo soporte)
+  let tenantId: string | null = null;
+
+  if (session?.role === 'SUPER_ADMIN') {
+    if (session.impersonatedTenantId) {
+      tenantId = session.impersonatedTenantId;
+    } else {
+      // Super Admin sin tenant impersonado — redirigir a su panel
+      redirect('/admin/super');
+    }
+  } else if (session?.tenantId) {
+    tenantId = session.tenantId;
+  } else {
     redirect('/admin/login');
   }
 
-  const tenantId = session.tenantId;
   const todayStart = startOfDay(new Date());
-  const todayEnd = endOfDay(new Date());
+  const todayEnd   = endOfDay(new Date());
 
   // 1. Obtener reservas de hoy
   const bookingsToday = await db.select().from(bookings).where(

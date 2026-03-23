@@ -39,6 +39,7 @@ export default function BookingWidget({
   tenantName, 
   tenantId, 
   tenantLogo,
+  whatsappNumber,
   homeServiceTerms,
   homeServiceTermsEnabled
 }: { 
@@ -48,6 +49,7 @@ export default function BookingWidget({
   tenantName: string, 
   tenantId: string,
   tenantLogo?: string,
+  whatsappNumber?: string,
   homeServiceTerms?: string,
   homeServiceTermsEnabled?: boolean
 }) {
@@ -84,7 +86,13 @@ export default function BookingWidget({
   }, []);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const isFormValid = guestName.trim() !== "" && emailRegex.test(guestEmail) && guestPhone.length >= 7 && (modality !== 'domicilio' || agreedToTerms);
+  // Botón habilitado cuando: nombre + email + teléfono válidos
+  // Y si es domicilio Y los términos están activados: también debe aceptarlos
+  const isFormValid =
+    guestName.trim() !== '' &&
+    emailRegex.test(guestEmail) &&
+    guestPhone.length >= 7 &&
+    (modality !== 'domicilio' || !homeServiceTermsEnabled || agreedToTerms);
 
   // Cargar horarios reales cuando cambien los filtros
   useEffect(() => {
@@ -162,15 +170,17 @@ export default function BookingWidget({
 
     if (result.success) {
       if (modality === 'domicilio') {
+        // Usar el número WA configurado por el negocio (o fallback genérico)
+        const waNumber = whatsappNumber || '50370000000';
         const whatsappMsg = encodeURIComponent(
           `¡Hola! Me gustaría confirmar mi cita para *${selectedService.name}*.\n\n` +
           `📅 *Fecha:* ${selectedDate}\n` +
           `⏰ *Hora:* ${selectedTime}\n` +
           `📍 *Modalidad:* Servicio a Domicilio\n` +
           `👤 *Cliente:* ${guestName}\n` +
-          `📞 *Teléfono:* ${guestPhone}`
+          `📞 *Teléfono:* ${selectedCountry.prefix} ${guestPhone}`
         );
-        window.open(`https://wa.me/50370000000?text=${whatsappMsg}`, '_blank');
+        window.open(`https://wa.me/${waNumber}?text=${whatsappMsg}`, '_blank');
       }
       setStep(5);
     } else {

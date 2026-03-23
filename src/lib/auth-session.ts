@@ -3,7 +3,11 @@ import { cookies } from "next/headers";
 export type SessionUser = {
   email: string;
   role: 'ADMIN' | 'SUPER_ADMIN';
-  tenantId?: string;
+  tenantId?: string | null;
+  userId?: string;
+  impersonatedBy?: string;      // Email del Super Admin que está impersonando (en sesión del admin)
+  impersonatedTenantId?: string; // ID del tenant que el SUPER_ADMIN está visitando
+  impersonatedTenantName?: string; // Nombre del tenant (para el banner)
 };
 
 /**

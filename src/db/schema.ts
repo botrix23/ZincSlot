@@ -15,8 +15,10 @@ import { relations } from 'drizzle-orm';
 export const tenants = pgTable('tenants', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: varchar('name', { length: 255 }).notNull(),
-  logoUrl: text('logo_url'), // Nueva columna para personalización de marca
-  timezone: varchar('timezone', { length: 100 }).notNull().default('UTC'), 
+  logoUrl: text('logo_url'),
+  whatsappNumber: varchar('whatsapp_number', { length: 30 }), // Número WA del negocio (ej. 50370000000)
+  waMessageTemplate: text('wa_message_template'),              // Template personalizado del mensaje WA a domicilio
+  timezone: varchar('timezone', { length: 100 }).notNull().default('UTC'),
   plan: varchar('plan', { length: 50 }).notNull().default('FREE'), // 'FREE' | 'PRO' | 'ENTERPRISE'
   status: varchar('status', { length: 50 }).notNull().default('TRIAL'), // 'ACTIVE' | 'TRIAL' | 'SUSPENDED'
   subscriptionExpiresAt: timestamp('subscription_expires_at', { withTimezone: true, mode: 'date' }),
@@ -32,7 +34,8 @@ export const branches = pgTable('branches', {
   id: uuid('id').primaryKey().defaultRandom(),
   tenantId: uuid('tenant_id').notNull().references(() => tenants.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 255 }).notNull(),
-  // Horarios de atención base de la sucursal (podría ser JSON o tabla separada)
+  address: varchar('address', { length: 500 }),
+  phone: varchar('phone', { length: 30 }),
   businessHours: text('business_hours'), 
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
@@ -58,6 +61,7 @@ export const services = pgTable('services', {
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
   includes: json('includes').$type<string[]>().default([]).notNull(),
   excludes: json('excludes').$type<string[]>().default([]).notNull(),
+  sortOrder: integer('sort_order').notNull().default(0), // Para ordenamiento personalizado
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
@@ -119,6 +123,17 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   password: text('password').notNull(), 
   role: varchar('role', { length: 50 }).notNull().default('ADMIN'), // 'ADMIN' | 'SUPER_ADMIN'
+  createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
+});
+
+// 10. Audit Logs (Registro de auditoría de toda la app)
+export const auditLogs = pgTable('audit_logs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  tenantId: uuid('tenant_id').references(() => tenants.id, { onDelete: 'set null' }), // Null para eventos globales (Super Admin)
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),       // Quién realizó la acción
+  action: varchar('action', { length: 100 }).notNull(), // 'LOGIN_SUCCESS' | 'TENANT_STATUS_CHANGED' | etc.
+  details: json('details').$type<Record<string, unknown>>(), // Contexto adicional del evento
+  ipAddress: varchar('ip_address', { length: 50 }),
   createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).notNull().defaultNow(),
 });
 
