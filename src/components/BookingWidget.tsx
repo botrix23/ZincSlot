@@ -464,7 +464,7 @@ export default function BookingWidget({
                       
                       <div className="grid grid-cols-1 gap-y-3 text-[11px] border-t border-slate-200 dark:border-white/5 pt-3">
                         <div>
-                          <p className="text-zinc-200 font-semibold mb-1 flex items-center gap-2 font-black uppercase text-[9px] tracking-widest"><Check className="w-3.5 h-3.5 text-emerald-400"/> {t("includes")}</p>
+                          <p className="text-slate-800 dark:text-zinc-200 font-semibold mb-1 flex items-center gap-2 font-black uppercase text-[9px] tracking-widest"><Check className="w-3.5 h-3.5 text-emerald-400"/> {t("includes")}</p>
                           <ul className="space-y-1">
                             {srv.includes?.slice(0, 3).map((inc, i) => (
                               <li key={i} className="flex items-start gap-2 text-slate-500 dark:text-zinc-400 leading-tight truncate">
@@ -474,6 +474,19 @@ export default function BookingWidget({
                             ))}
                           </ul>
                         </div>
+                        {srv.excludes && srv.excludes.length > 0 && (
+                          <div>
+                            <p className="text-slate-800 dark:text-zinc-200 font-semibold mb-1 flex items-center gap-2 font-black uppercase text-[9px] tracking-widest"><X className="w-3.5 h-3.5 text-rose-400"/> {t("excludes")}</p>
+                            <ul className="space-y-1">
+                              {srv.excludes.slice(0, 3).map((exc, i) => (
+                                <li key={i} className="flex items-start gap-2 text-slate-500 dark:text-zinc-400 leading-tight truncate">
+                                  <span className="w-1 h-1 rounded-full bg-rose-500/50 mt-1.5 shrink-0"></span>
+                                  {exc}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     </button>
                   );
@@ -507,123 +520,136 @@ export default function BookingWidget({
 
           {/* STEP 3: Select Date & Time (and STAFF) */}
           {step === 3 && (
-            <div className="relative z-10 flex flex-col h-full animate-in fade-in slide-in-from-right-8 duration-500 text-slate-900 dark:text-white">
-              <div className="flex items-center gap-3 mb-6">
+            <div className="relative z-10 flex flex-col h-full animate-in fade-in slide-in-from-right-8 duration-500 text-slate-900 dark:text-white max-h-screen">
+              <div className="flex items-center gap-3 mb-4">
                 <button 
                   onClick={() => { setStep(2); setSelectedTime(null); setSelectedStaff(null); }}
                   className="p-2 bg-white dark:bg-white/5 hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-zinc-300 transition-colors"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </button>
-                <h2 className="text-2xl font-bold tracking-tight">
+                <h2 className="text-xl font-bold tracking-tight">
                   {bookingSettings?.step3Title || t("title_specialist")}
                 </h2>
               </div>
               
-              {/* STAFF SELECTION */}
-              <div className="mb-6">
-                  <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400 mb-3 uppercase tracking-wider">{t("who_attends")}</p>
-                  <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-                    <div 
+              <div className="flex flex-col gap-4 flex-1 overflow-hidden">
+                {/* STAFF SELECTION - More Compact */}
+                <div>
+                  <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar no-scrollbar">
+                    <button 
                       onClick={() => handleSelectStaff(null)}
-                      className={`min-w-[100px] flex flex-col items-center justify-center p-3 border rounded-xl cursor-pointer transition-all duration-300 ${
+                      className={`flex items-center gap-2 px-3 py-2 border rounded-full transition-all duration-300 shrink-0 ${
                         selectedStaff === null 
-                          ? 'bg-purple-500/20 border-purple-500 text-slate-900 dark:text-white shadow-[0_0_15px_rgba(139,92,246,0.2)]' 
-                          : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-zinc-400 hover:bg-white/10 hover:text-slate-900 dark:text-white'
+                          ? 'bg-purple-500/20 border-purple-500 text-purple-700 dark:text-purple-400 shadow-sm' 
+                          : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 hover:bg-slate-50 dark:hover:bg-white/10'
                       }`}
                     >
-                      <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mb-2">✨</div>
-                      <p className="text-xs font-medium text-center leading-tight">{t("anyone")}<br/>{t("anyone_desc")}</p>
-                    </div>
+                      <span className="text-sm">✨ {t("anyone")}</span>
+                    </button>
                     
                     {staff.map((member) => (
-                      <div 
+                      <button 
                         key={member.id}
                         onClick={() => handleSelectStaff(member)}
-                        className={`min-w-[100px] flex flex-col items-center justify-center p-3 border rounded-xl cursor-pointer transition-all duration-300 ${
+                        className={`flex items-center gap-2 px-3 py-2 border rounded-full transition-all duration-300 shrink-0 ${
                           selectedStaff?.id === member.id 
-                            ? 'bg-blue-500/20 border-blue-500 text-slate-900 dark:text-white shadow-[0_0_15px_rgba(59,130,246,0.2)]' 
-                            : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-zinc-400 hover:bg-white/10 hover:text-slate-900 dark:text-white'
+                            ? 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-400 shadow-sm' 
+                            : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 hover:bg-slate-50 dark:hover:bg-white/10'
                         }`}
                       >
-                        <div className="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center mb-2 border border-blue-500/30">
+                        <div className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-500 font-bold flex items-center justify-center text-[10px] border border-blue-500/30">
                           {member.name.charAt(0)}
                         </div>
-                        <p className="text-xs font-medium text-center py-1">{member.name}</p>
-                      </div>
+                        <span className="text-sm">{member.name}</span>
+                      </button>
                     ))}
                   </div>
                 </div>
 
-              {/* DATE SELECTION (MOCK) */}
-              <div className="mb-6 bg-slate-100 dark:bg-black/20 p-4 rounded-xl border border-slate-200 dark:border-white/5">
-                <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400 mb-4 uppercase tracking-wider">
-                  {modality === 'domicilio' ? t("dates_home") : t("dates")}
-                </p>
-                <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
-                  {nextDays.map((day) => (
-                    <div 
-                      key={day.fullDate}
-                      onClick={() => setSelectedDate(day.fullDate)}
-                      className={`min-w-[80px] border-2 text-center py-3 rounded-xl font-bold cursor-pointer transition-all duration-300 ${
-                        selectedDate === day.fullDate
-                          ? 'bg-purple-500/20 border-purple-500 text-purple-400 shadow-[0_0_15px_rgba(139,92,246,0.2)]'
-                          : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-zinc-400 hover:bg-white/10 hover:text-slate-900 dark:text-white'
-                      }`}
-                    >
-                      <p className="text-xs uppercase opacity-80 mb-1">{day.dayName}</p>
-                      <p className="text-2xl">{day.dayNum}</p>
+                <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden min-h-0">
+                  {/* DATE SELECTION - Vertical List or Mini Calendar */}
+                  <div className="w-full md:w-1/3 flex flex-col">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                       {modality === 'domicilio' ? t("dates_home") : t("dates")}
+                    </p>
+                    <div className="flex md:flex-col gap-2 overflow-auto custom-scrollbar md:pr-2 pb-2 md:pb-0">
+                      {nextDays.map((day) => (
+                        <button 
+                          key={day.fullDate}
+                          onClick={() => setSelectedDate(day.fullDate)}
+                          className={`flex items-center justify-between md:w-full min-w-[70px] px-3 py-2.5 rounded-xl border-2 transition-all duration-300 shrink-0 ${
+                            selectedDate === day.fullDate
+                              ? 'bg-purple-500/20 border-purple-500 text-purple-700 dark:text-purple-400 shadow-sm'
+                              : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 hover:border-slate-300 dark:hover:border-white/20'
+                          }`}
+                        >
+                          <div className="text-left">
+                            <p className="text-[10px] uppercase opacity-60 font-bold">{day.dayName}</p>
+                            <p className="text-lg font-black leading-none">{day.dayNum}</p>
+                          </div>
+                          {selectedDate === day.fullDate && <Check className="w-4 h-4 hidden md:block" />}
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* TIME SELECTION - Grid */}
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">{t("times")}</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 overflow-y-auto custom-scrollbar pr-1 flex-1 pb-4">
+                      {isLoadingTimes ? (
+                        <div className="col-span-full flex flex-col items-center justify-center py-12">
+                          <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                          <p className="mt-2 text-xs text-slate-400">Verificando...</p>
+                        </div>
+                      ) : !selectedDate ? (
+                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-400 border border-dashed border-slate-200 dark:border-white/10 rounded-2xl">
+                          <Calendar className="w-8 h-8 mb-2 opacity-20" />
+                          <p className="text-sm">Elige un día primero</p>
+                        </div>
+                      ) : availableTimes.length === 0 ? (
+                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-400 border border-dashed border-slate-200 dark:border-white/10 rounded-2xl">
+                          <Clock className="w-8 h-8 mb-2 opacity-20" />
+                          <p className="text-sm px-4 text-center">{t("no_slots_available")}</p>
+                        </div>
+                      ) : (
+                        availableTimes.map(({time, available}) => (
+                          <button 
+                            key={time}
+                            onClick={() => available && handleSelectTime(time)}
+                            disabled={!available}
+                            className={`px-3 py-3 rounded-xl transition-all duration-300 flex flex-col items-center justify-center border ${
+                              !available
+                                ? "bg-slate-50 dark:bg-black/40 text-slate-300 dark:text-zinc-700 border-slate-100 dark:border-white/5 cursor-not-allowed"
+                                : selectedTime === time 
+                                  ? "bg-purple-600 text-white border-purple-500 shadow-md ring-2 ring-purple-500/20" 
+                                  : "bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-300"
+                            }`}
+                          >
+                            <span className={`font-bold text-sm ${!available ? 'opacity-40' : ''}`}>{time}</span>
+                            {!available && <span className="text-[8px] uppercase font-black text-rose-500 mt-0.5">{t("occupied")}</span>}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* TIME SELECTION */}
-              <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400 mb-4 uppercase tracking-wider">{t("times")}</p>
-              <div className="grid grid-cols-2 gap-3 mb-8 overflow-y-auto max-h-[300px] pr-2 relative custom-scrollbar">
-                {isLoadingTimes ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-black/20 backdrop-blur-[2px] z-20 rounded-xl">
-                    <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
-                  </div>
-                ) : availableTimes.length === 0 ? (
-                  <div className="col-span-2 flex flex-col items-center justify-center p-8 text-slate-400 text-center">
-                    <Clock className="w-12 h-12 mb-2 opacity-20" />
-                    <p>{t("no_slots_available")}</p>
-                  </div>
-                ) : availableTimes.map(({time, available}) => (
-                  <button 
-                    key={time}
-                    onClick={() => available && handleSelectTime(time)}
-                    disabled={!available}
-                    className={`group relative px-4 py-3.5 rounded-xl transition-all duration-300 flex items-center justify-between overflow-hidden border ${
-                      !available
-                        ? "bg-slate-100 dark:bg-black/20 text-zinc-600 border-slate-200 dark:border-white/5 cursor-not-allowed opacity-60"
-                        : selectedTime === time 
-                          ? "bg-purple-600 text-white border-purple-500 shadow-[0_0_20px_rgba(139,92,246,0.5)]" 
-                          : "bg-white dark:bg-white/5 hover:bg-white/10 border-slate-200 dark:border-white/10 hover:border-white/20 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:text-white"
-                    }`}
-                  >
-                    <span className={`font-semibold tracking-wide text-sm ${!available ? 'line-through' : ''}`}>{time}</span>
-                    {available ? (
-                      <ChevronRight className={`w-4 h-4 transition-all duration-300 ${selectedTime === time ? "opacity-100 translate-x-0 text-white" : "opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 text-slate-400 dark:text-zinc-500"}`} />
-                    ) : (
-                      <span className="text-[10px] uppercase font-bold text-rose-500/70">{t("occupied")}</span>
-                    )}
-                  </button>
-                ))}
+              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-white/10">
+                <button 
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleConfirmTimes();
+                  }}
+                  disabled={!selectedTime || !selectedDate}
+                  className="w-full py-4 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-100 dark:disabled:bg-white/5 disabled:text-slate-400 dark:disabled:text-zinc-600 text-white rounded-xl font-bold tracking-widest transition-all duration-300 shadow-lg active:scale-[0.98]"
+                >
+                  {t("go_to_data")}
+                </button>
               </div>
-
-              <button 
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleConfirmTimes();
-                }}
-                disabled={!selectedTime || !selectedDate}
-                className="w-full mt-auto py-4 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-200 dark:disabled:bg-zinc-800 disabled:text-slate-400 dark:disabled:text-zinc-600 disabled:border-slate-300 dark:disabled:border-zinc-700 disabled:cursor-not-allowed text-white rounded-xl font-bold tracking-widest shadow-[0_0_20px_rgba(139,92,246,0.3)] disabled:shadow-none hover:shadow-[0_0_30px_rgba(139,92,246,0.5)] transition-all duration-300 border border-purple-500/50 relative z-30"
-              >
-                {t("go_to_data")}
-              </button>
             </div>
           )}
 
@@ -647,7 +673,7 @@ export default function BookingWidget({
                   <label className="block text-sm font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-2">{t("full_name")}</label>
                   <div className="relative">
                     <UserCircle className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
-                    <input type="text" value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="Ej. Ana Gómez" className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-slate-900 dark:text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"/>
+                    <input type="text" value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="Nombre y Apellido" className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-slate-900 dark:text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"/>
                   </div>
                 </div>
 
@@ -655,7 +681,7 @@ export default function BookingWidget({
                   <label className="block text-sm font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-2">{t("email")}</label>
                   <div className="relative">
                     <Mail className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
-                    <input type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} placeholder="tu@correo.com" className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-slate-900 dark:text-white placeholder-zinc-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"/>
+                    <input type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} placeholder="tuemail@ejemplo.com" className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl py-4 pl-12 pr-4 text-slate-900 dark:text-white placeholder-zinc-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"/>
                   </div>
                 </div>
 
