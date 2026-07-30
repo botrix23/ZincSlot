@@ -224,44 +224,66 @@ export default function BillingClient({ tenantId, plan, tenantStatus, subscripti
     else setModal('downgrade')
   }
 
-  // All activation / upgrade / reactivation flows redirect to N1CO checkout
+  // All activation / upgrade / reactivation flows send the user to N1CO checkout.
+  //
+  // N1CO's "payment complete" page does NOT redirect back to Zyncrox, so we open
+  // the checkout in a NEW browser tab and keep this one on the billing screen.
+  // The blank tab is opened synchronously (inside the click gesture) to avoid
+  // popup blockers; we set its URL after the server action resolves.
+  const openCheckout = (tab: Window | null, url: string) => {
+    if (tab) tab.location.href = url
+    else window.open(url, '_blank', 'noopener,noreferrer') // fallback if popup was blocked
+    setModal(null)
+    showSuccess(t('success.checkoutOpened'))
+  }
+
   const handleActivate = async () => {
+    const checkoutTab = window.open('about:blank', '_blank')
     setLoading(true)
     const res = await activateSubscriptionAction(tenantId, targetPlan)
     setLoading(false)
     if (res.success && res.redirectUrl) {
-      window.location.href = res.redirectUrl
+      openCheckout(checkoutTab, res.redirectUrl)
     } else {
+      checkoutTab?.close()
       showError(res.error ?? t('error.activate'))
     }
   }
 
   const handleReactivate = async () => {
+    const checkoutTab = window.open('about:blank', '_blank')
     setLoading(true)
     const res = await reactivateSubscriptionAction(tenantId, targetPlan)
     setLoading(false)
     if (res.success && res.redirectUrl) {
-      window.location.href = res.redirectUrl
+      openCheckout(checkoutTab, res.redirectUrl)
     } else {
+      checkoutTab?.close()
       showError(res.error ?? t('error.reactivate'))
     }
   }
 
   const handleChangePlan = async () => {
+    // An upgrade always redirects to checkout; a downgrade is deferred (no redirect).
+    const willRedirect = getPlanOrder(targetPlan) > getPlanOrder(currentPlan)
+    const checkoutTab = willRedirect ? window.open('about:blank', '_blank') : null
     setLoading(true)
     const res = await changePlanAction(tenantId, targetPlan)
     setLoading(false)
     if (res.success) {
       if (res.deferred) {
+        checkoutTab?.close()
         setModal(null)
         showSuccess(t('success.planDowngradeScheduled', { plan: getPlanName(targetPlan), date: formatDate(subscription?.currentPeriodEnd ?? null, locale) }))
       } else if (res.redirectUrl) {
-        window.location.href = res.redirectUrl
+        openCheckout(checkoutTab, res.redirectUrl)
       } else {
+        checkoutTab?.close()
         setModal(null)
         showSuccess(t('success.planUpgraded', { plan: getPlanName(targetPlan) }))
       }
     } else {
+      checkoutTab?.close()
       showError(res.error ?? t('error.changePlan'))
     }
   }
@@ -436,6 +458,7 @@ export default function BillingClient({ tenantId, plan, tenantStatus, subscripti
               {isActive && <span className="px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-semibold rounded-full">{t('currentSub.statusActive')}</span>}
               {isPastDue && <span className="px-2.5 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-xs font-semibold rounded-full">{t('currentSub.statusPastDue')}</span>}
               {isCancelled && <span className="px-2.5 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-semibold rounded-full">{t('currentSub.statusCancelled')}</span>}
+              {isPendingPayment && <span className="px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-semibold rounded-full">{t('currentSub.statusPending')}</span>}
             </div>
 
             {isActive && subscription?.currentPeriodEnd && (
@@ -448,6 +471,24 @@ export default function BillingClient({ tenantId, plan, tenantStatus, subscripti
               <div className="flex items-start gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
                 <AlertTriangle className="w-4 h-4 text-yellow-600 shrink-0 mt-0.5" />
                 <p className="text-sm text-yellow-700 dark:text-yellow-400">{t.rich('currentSub.paymentFailed', { date: formatDate(subscription.gracePeriodEndsAt, locale), strong: richStrong })}</p>
+              </div>
+            )}
+
+            {isPendingPayment && (
+              <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-2">
+                  <p className="text-sm text-amber-700 dark:text-amber-400">{t('currentSub.pendingPaymentDesc')}</p>
+                  {isOwner && (
+                    <button
+                      onClick={() => { setTargetPlan(currentPlan); setModal('activate') }}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      {t('currentSub.completePayment')}
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 

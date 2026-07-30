@@ -2083,10 +2083,13 @@
       "statusActive": "Active",
       "statusPastDue": "Past due",
       "statusCancelled": "Cancelled",
+      "statusPending": "Payment pending",
       "nextInvoice": "Next invoice: <strong>${amount}</strong> on <strong>{date}</strong>",
       "accessUntil": "Access until: <strong>{date}</strong>. After that, your account will be suspended.",
       "paymentFailed": "Your payment failed. You have until <strong>{date}</strong> to update your card before your account is suspended.",
-      "pendingDowngrade": "Scheduled plan change: you'll switch to <strong>{plan}</strong> on <strong>{date}</strong>. Until then, you'll keep your current plan."
+      "pendingDowngrade": "Scheduled plan change: you'll switch to <strong>{plan}</strong> on <strong>{date}</strong>. Until then, you'll keep your current plan.",
+      "pendingPaymentDesc": "You started a subscription but didn't complete payment, so you don't have an active plan yet. Nothing is being charged. Complete the payment to activate your plan.",
+      "completePayment": "Complete payment"
     },
     "payment": {
       "title": "Payment method",
@@ -2142,7 +2145,7 @@
       }
     },
     "redirect": {
-      "notice": "You'll be securely redirected to N1CO's payment processor to complete your subscription.",
+      "notice": "N1CO's secure checkout will open in a new tab to complete your payment. When you're done, come back to this tab and refresh to see your active subscription.",
       "cta": "Continue to checkout"
     },
     "success": {
@@ -2151,7 +2154,8 @@
       "planUpgraded": "Upgraded to {plan}. Your new billing cycle starts today.",
       "planDowngradeScheduled": "Change scheduled: you'll move to {plan} on {date}.",
       "cancelled": "Subscription cancelled",
-      "cardUpdated": "Card updated successfully"
+      "cardUpdated": "Card updated successfully",
+      "checkoutOpened": "We opened N1CO's checkout in a new tab. When you finish paying, come back here and refresh the page."
     },
     "error": {
       "activate": "Error activating subscription",

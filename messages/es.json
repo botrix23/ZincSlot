@@ -2083,10 +2083,13 @@
       "statusActive": "Activo",
       "statusPastDue": "Vencido",
       "statusCancelled": "Cancelado",
+      "statusPending": "Pago pendiente",
       "nextInvoice": "Próxima factura: <strong>${amount}</strong> el <strong>{date}</strong>",
       "accessUntil": "Acceso hasta: <strong>{date}</strong>. Después tu cuenta quedará suspendida.",
       "paymentFailed": "Tu pago falló. Tienes hasta el <strong>{date}</strong> para actualizar tu tarjeta antes de que tu cuenta sea suspendida.",
-      "pendingDowngrade": "Cambio de plan programado: cambiarás a <strong>{plan}</strong> el <strong>{date}</strong>. Hasta entonces seguirás con tu plan actual."
+      "pendingDowngrade": "Cambio de plan programado: cambiarás a <strong>{plan}</strong> el <strong>{date}</strong>. Hasta entonces seguirás con tu plan actual.",
+      "pendingPaymentDesc": "Iniciaste una suscripción pero no completaste el pago, así que aún no tienes un plan activo. No hay ningún cobro corriendo. Completa el pago para activar tu plan.",
+      "completePayment": "Completar pago"
     },
     "payment": {
       "title": "Método de pago",
@@ -2142,7 +2145,7 @@
       }
     },
     "redirect": {
-      "notice": "Serás redirigido de forma segura al procesador de pagos de N1CO para completar tu suscripción.",
+      "notice": "Se abrirá el checkout seguro de N1CO en una pestaña nueva para completar tu pago. Cuando termines, vuelve a esta pestaña y actualiza para ver tu suscripción activa.",
       "cta": "Continuar al checkout"
     },
     "success": {
@@ -2151,7 +2154,8 @@
       "planUpgraded": "Subiste al plan {plan}. Tu nuevo ciclo comienza hoy.",
       "planDowngradeScheduled": "Cambio programado: pasarás al plan {plan} el {date}.",
       "cancelled": "Suscripción cancelada",
-      "cardUpdated": "Tarjeta actualizada correctamente"
+      "cardUpdated": "Tarjeta actualizada correctamente",
+      "checkoutOpened": "Abrimos el checkout de N1CO en una pestaña nueva. Cuando termines de pagar, vuelve aquí y actualiza la página."
     },
     "error": {
       "activate": "Error al activar la suscripción",
