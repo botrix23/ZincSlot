@@ -740,6 +740,7 @@
       "analytics": "Advanced analytics"
     },
     "sidebar": {
+      "lockedHint": "Reactivate your subscription to access this section",
       "dashboard": "Dashboard",
       "bookings": "Bookings",
       "services": "Services",
@@ -2071,7 +2072,9 @@
     "suspended": {
       "title": "Your account is suspended",
       "desc": "Reactivate your subscription to regain access to all features.",
-      "reactivateWith": "Reactivate with {plan}"
+      "reactivateWith": "Reactivate with {plan}",
+      "nonOwnerTitle": "Account suspended",
+      "nonOwnerDesc": "This business's subscription is suspended. Please contact the account owner to reactivate it and restore access."
     },
     "noSub": {
       "title": "Choose your plan",

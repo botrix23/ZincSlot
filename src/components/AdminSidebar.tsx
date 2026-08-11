@@ -21,6 +21,7 @@ import {
   ExternalLink,
   Copy,
   Check,
+  Lock,
 } from 'lucide-react';
 import { getPlanDisplayName } from '@/core/plans';
 import Link from 'next/link';
@@ -33,7 +34,7 @@ import { useTranslations } from 'next-intl';
 
 const COLLAPSED_KEY = 'sidebar-collapsed';
 
-export function AdminSidebar({ user, locale, tenantName, tenantPlan, tenantSlug }: { user: SessionUser | null, locale: string, tenantName?: string, tenantPlan?: string | null, tenantSlug?: string }) {
+export function AdminSidebar({ user, locale, tenantName, tenantPlan, tenantSlug, locked = false }: { user: SessionUser | null, locale: string, tenantName?: string, tenantPlan?: string | null, tenantSlug?: string, locked?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations('Dashboard.sidebar');
@@ -211,19 +212,38 @@ export function AdminSidebar({ user, locale, tenantName, tenantPlan, tenantSlug 
       {/* Nav items */}
       <nav className={`flex-1 ${collapsed && !forMobile ? 'px-2' : 'px-4'} space-y-1 mt-2 overflow-y-auto custom-scrollbar`}>
         {baseItems.map((item) => (
-          <Link
-            key={item.name}
-            href={item.href}
-            title={collapsed && !forMobile ? item.name : undefined}
-            className={`flex items-center ${collapsed && !forMobile ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3.5'} rounded-2xl transition-all duration-200 group ${
-              item.active
-                ? 'bg-purple-600 text-white shadow-xl shadow-purple-500/20'
-                : 'text-slate-500 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <item.icon className={`w-5 h-5 shrink-0 ${item.active ? 'text-white' : 'group-hover:text-purple-500 transition-colors'}`} />
-            {(!collapsed || forMobile) && <span className="font-semibold text-sm whitespace-nowrap">{item.name}</span>}
-          </Link>
+          locked ? (
+            // Account suspended / trial expired: nav is disabled until the owner
+            // reactivates. Render non-clickable, dimmed items with a lock hint.
+            <div
+              key={item.name}
+              aria-disabled="true"
+              title={t('lockedHint')}
+              className={`flex items-center ${collapsed && !forMobile ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3.5'} rounded-2xl opacity-40 cursor-not-allowed select-none text-slate-500 dark:text-zinc-500`}
+            >
+              <item.icon className="w-5 h-5 shrink-0" />
+              {(!collapsed || forMobile) && (
+                <span className="font-semibold text-sm whitespace-nowrap flex items-center gap-1.5">
+                  {item.name}
+                  <Lock className="w-3 h-3" />
+                </span>
+              )}
+            </div>
+          ) : (
+            <Link
+              key={item.name}
+              href={item.href}
+              title={collapsed && !forMobile ? item.name : undefined}
+              className={`flex items-center ${collapsed && !forMobile ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3.5'} rounded-2xl transition-all duration-200 group ${
+                item.active
+                  ? 'bg-purple-600 text-white shadow-xl shadow-purple-500/20'
+                  : 'text-slate-500 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <item.icon className={`w-5 h-5 shrink-0 ${item.active ? 'text-white' : 'group-hover:text-purple-500 transition-colors'}`} />
+              {(!collapsed || forMobile) && <span className="font-semibold text-sm whitespace-nowrap">{item.name}</span>}
+            </Link>
+          )
         ))}
       </nav>
 

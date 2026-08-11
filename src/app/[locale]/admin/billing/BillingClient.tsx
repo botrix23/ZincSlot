@@ -332,15 +332,27 @@ export default function BillingClient({ tenantId, plan, tenantStatus, subscripti
 
   const richStrong = (chunks: React.ReactNode) => <strong>{chunks}</strong>
 
+  // Non-owner on a suspended account: no payment options — only tell them to
+  // contact the business owner. Reactivating is the owner's job.
+  if (isSuspended && !isOwner) {
+    return (
+      <div className="max-w-5xl mx-auto space-y-6">
+        <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <div className={`${cardCls} border-red-200 dark:border-red-800`}>
+          <div className="flex items-center gap-3 mb-4">
+            <XCircle className="w-6 h-6 text-red-500" />
+            <h2 className="text-lg font-bold text-red-600 dark:text-red-400">{t('suspended.nonOwnerTitle')}</h2>
+          </div>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">{t('suspended.nonOwnerDesc')}</p>
+        </div>
+      </div>
+    )
+  }
+
   if (isSuspended) {
     return (
       <div className="max-w-5xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold">{t('title')}</h1>
-        {!isOwner && (
-          <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl text-amber-700 dark:text-amber-400 text-sm">
-            <Lock className="w-4 h-4 shrink-0" />{t('ownerOnlyNotice')}
-          </div>
-        )}
         <Alerts />
         <div className={`${cardCls} border-red-200 dark:border-red-800`}>
           <div className="flex items-center gap-3 mb-4">

@@ -64,6 +64,14 @@ export default async function BillingLayout({
     }
   }
 
+  // Lock the sidebar when the account can't use the app until it pays:
+  // suspended, or a trial that already expired. SUPER_ADMIN is never locked.
+  const trialExpired =
+    tenantStatus === 'TRIAL' && !!trialEndsAt && new Date() > trialEndsAt;
+  const locked =
+    session.role !== 'SUPER_ADMIN' &&
+    (tenantStatus === 'SUSPENDED' || trialExpired);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-black text-slate-900 dark:text-white flex overflow-hidden">
       <AdminSidebar
@@ -71,6 +79,7 @@ export default async function BillingLayout({
         locale={locale}
         tenantName={tenantName}
         tenantPlan={tenantPlan}
+        locked={locked}
       />
       <main className="flex-1 flex flex-col min-h-screen max-h-screen overflow-hidden">
         <AdminHeader

@@ -740,6 +740,7 @@
       "analytics": "Analítica avanzada"
     },
     "sidebar": {
+      "lockedHint": "Reactiva tu suscripción para acceder a esta sección",
       "dashboard": "Dashboard",
       "bookings": "Citas",
       "services": "Servicios",
@@ -2071,7 +2072,9 @@
     "suspended": {
       "title": "Tu cuenta está suspendida",
       "desc": "Reactiva tu suscripción para recuperar el acceso a todas las funciones.",
-      "reactivateWith": "Reactivar con {plan}"
+      "reactivateWith": "Reactivar con {plan}",
+      "nonOwnerTitle": "Cuenta suspendida",
+      "nonOwnerDesc": "La suscripción de este negocio está suspendida. Contacta al dueño de la cuenta para reactivarla y recuperar el acceso."
     },
     "noSub": {
       "title": "Elige tu plan",
