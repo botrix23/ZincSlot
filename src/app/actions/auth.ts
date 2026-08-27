@@ -79,13 +79,11 @@ export async function loginAction(formData: FormData, locale: string) {
       return { success: false, errorCode: 'errorDisabled' };
     }
 
-    // 3. Verificar que el Tenant no esté suspendido
-    // El trial vencido NO bloquea el login — el layout redirige a /billing para que pueda pagar
-    if (user.role === 'ADMIN' && user.tenant) {
-      if (user.tenant.status === 'SUSPENDED') {
-        return { success: false, errorCode: 'errorSuspended' };
-      }
-    }
+    // 3. Cuenta suspendida: NO se bloquea el login.
+    // Todos los roles del negocio pueden entrar y son redirigidos a /billing
+    // por el layout. El dueño ve las opciones de reactivación para pagar; los
+    // demás roles ven "Cuenta suspendida — contacta al dueño". Igual que el
+    // trial vencido, el login queda abierto para permitir la reactivación.
 
     // 4. Verificar expiración de contraseña temporal (solo si aún no se ha cambiado)
     if (user.mustChangePassword && user.tempPasswordExpiresAt) {

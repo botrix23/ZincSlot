@@ -12,7 +12,7 @@ export default async function BillingPage({ params }: { params: { locale: string
   const session = await getSession()
   const locale = params.locale || 'es'
 
-  if (!session || session.role === 'STAFF' || session.role === 'RECEPTIONIST') {
+  if (!session) {
     redirect(`/${locale}/admin`)
   }
 
@@ -22,7 +22,7 @@ export default async function BillingPage({ params }: { params: { locale: string
   const [tenant, subscription, cfg, dbPlans] = await Promise.all([
     db.query.tenants.findFirst({
       where: eq(tenants.id, tenantId),
-      columns: { plan: true, status: true, name: true },
+      columns: { plan: true, status: true, name: true, subscriptionExpiresAt: true },
     }),
     db.query.subscriptions.findFirst({
       where: eq(subscriptions.tenantId, tenantId),
@@ -32,6 +32,20 @@ export default async function BillingPage({ params }: { params: { locale: string
       .where(eq(subscriptionPlans.isActive, true))
       .orderBy(asc(subscriptionPlans.sortOrder)),
   ])
+
+  // STAFF/RECEPTIONIST have no billing access normally, so they're sent back to
+  // the dashboard. The exception is a locked account (SUSPENDED, or a TRIAL that
+  // already expired): they're allowed to stay and see the "contact the account
+  // owner" screen. Otherwise they'd loop, since the dashboard layout redirects
+  // locked accounts to this page. Mirrors the layout's lock conditions.
+  const trialExpired =
+    tenant?.status === 'TRIAL' &&
+    !!tenant.subscriptionExpiresAt &&
+    new Date() > tenant.subscriptionExpiresAt
+  const locked = tenant?.status === 'SUSPENDED' || trialExpired
+  if ((session.role === 'STAFF' || session.role === 'RECEPTIONIST') && !locked) {
+    redirect(`/${locale}/admin`)
+  }
 
   const planPrices = parsePlanPrices(cfg)
 
