@@ -21,22 +21,28 @@ type Notification = {
   createdAt: Date;
 };
 
-export function SuperAdminLayoutClient({
-  children,
-  email,
+/**
+ * Sidebar content. Defined at module scope (NOT inside SuperAdminLayoutClient)
+ * on purpose: if it were an inline component, every re-render of the parent
+ * (e.g. on route change) would give it a new function identity, causing React
+ * to unmount + remount the whole subtree — which reset the NotificationsDropdown
+ * unread count back to its initial value on every navigation.
+ */
+function SidebarContent({
+  showBell = true,
   locale,
+  email,
   initialNotifications,
   initialUnreadCount,
 }: {
-  children: React.ReactNode;
-  email: string;
+  showBell?: boolean;
   locale: string;
+  email: string;
   initialNotifications: Notification[];
   initialUnreadCount: number;
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const pathname = usePathname();
   const t = useTranslations('SuperAdmin.nav');
+  const pathname = usePathname();
 
   const navItems = [
     { href: `/${locale}/admin/super`,          label: t('dashboard'),  icon: BarChart2 },
@@ -47,9 +53,7 @@ export function SuperAdminLayoutClient({
     { href: `/${locale}/admin/super/logs`,     label: t('logs'),       icon: FileText },
   ];
 
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
-
-  const SidebarContent = ({ showBell = true }: { showBell?: boolean }) => (
+  return (
     <>
       <div className="mb-8">
         <div className="flex items-center justify-between mb-1">
@@ -104,6 +108,28 @@ export function SuperAdminLayoutClient({
       </div>
     </>
   );
+}
+
+export function SuperAdminLayoutClient({
+  children,
+  email,
+  locale,
+  initialNotifications,
+  initialUnreadCount,
+}: {
+  children: React.ReactNode;
+  email: string;
+  locale: string;
+  initialNotifications: Notification[];
+  initialUnreadCount: number;
+}) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const t = useTranslations('SuperAdmin.nav');
+
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  const sidebarProps = { locale, email, initialNotifications, initialUnreadCount };
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-slate-950 text-zinc-900 dark:text-white flex transition-colors duration-200">
@@ -116,12 +142,12 @@ export function SuperAdminLayoutClient({
       <div className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-white/5 flex flex-col p-6 z-40 shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
         mobileOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
-        <SidebarContent showBell={false} />
+        <SidebarContent showBell={false} {...sidebarProps} />
       </div>
 
       {/* Desktop sidebar */}
       <aside className="w-64 bg-white dark:bg-black/40 border-r border-zinc-200 dark:border-white/5 hidden lg:flex flex-col p-6 sticky top-0 h-screen z-10">
-        <SidebarContent />
+        <SidebarContent {...sidebarProps} />
       </aside>
 
       {/* Main */}
