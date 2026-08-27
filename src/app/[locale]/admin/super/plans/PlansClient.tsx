@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { Plus, Pencil, Trash2, CheckCircle, XCircle, ExternalLink, FlaskConical } from 'lucide-react'
+import { Portal } from '@/components/Portal'
 import {
   createSubscriptionPlanAction,
   updateSubscriptionPlanAction,
@@ -275,9 +276,12 @@ export default function PlansClient({ plans: initialPlans }: { plans: Plan[] }) 
         )}
       </div>
 
-      {/* Form modal */}
+      {/* Form modal — rendered in a Portal so the overlay covers the full
+          viewport (the super-admin <main> has overflow-auto, which otherwise
+          clips a fixed overlay and leaves a white strip). */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+        <Portal>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4">
           <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-zinc-100 dark:border-white/10">
               <h2 className="text-lg font-bold">{editingId ? 'Editar plan' : 'Nuevo plan'}</h2>
@@ -397,6 +401,16 @@ export default function PlansClient({ plans: initialPlans }: { plans: Plan[] }) 
                 </div>
               </div>
 
+              <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
+                <FlaskConical className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-700 dark:text-amber-400">
+                  El <b>precio</b> y el <b>ciclo</b> reales del cobro los define el <b>link de N1CO</b>, no estos campos.
+                  Estos valores solo se usan para mostrar y calcular fechas dentro de Zyncrox. Si necesitas cambiar el
+                  precio o la frecuencia del cobro, crea un <b>nuevo link en panel.n1co.com</b> con esos valores y pégalo
+                  abajo — de lo contrario N1CO seguirá cobrando lo que tenga configurado el link actual.
+                </p>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-zinc-500 mb-1">Link de N1CO</label>
                 <input
@@ -453,6 +467,7 @@ export default function PlansClient({ plans: initialPlans }: { plans: Plan[] }) 
             </form>
           </div>
         </div>
+        </Portal>
       )}
     </div>
   )
